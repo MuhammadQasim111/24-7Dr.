@@ -1,20 +1,33 @@
+# app.py
+
 import streamlit as st
 from transformers import pipeline
 
-# Load the BioGPT model from HuggingFace or another medical GPT model
-# BioGPT has been fine-tuned on medical data and should provide better responses
+# Initialize the BioGPT model using the Hugging Face pipeline
 generator = pipeline("text-generation", model="microsoft/BioGPT")
 
-# Streamlit app title
+# Streamlit app title and description
 st.title("24/7Dr. Health Chatbot")
+st.markdown("""
+    This is a health chatbot that can provide responses based on the symptoms you describe.
+    It uses a medical GPT model to generate responses and help guide your understanding.
+    """)
 
-# Initialize session state for conversation history
+# Initialize session state for conversation history if it does not exist
 if 'history' not in st.session_state:
     st.session_state.history = []
 
 # Function to generate chatbot responses using BioGPT
 def generate_medical_response(user_input):
-    # Generate a response using BioGPT (or another medical model)
+    """
+    Generates a response using BioGPT model based on user input (symptoms).
+    
+    Args:
+        user_input (str): The symptoms or health-related query from the user.
+        
+    Returns:
+        str: The generated response from the BioGPT model.
+    """
     response = generator(user_input,
                          max_length=150,
                          num_return_sequences=1,
@@ -25,25 +38,36 @@ def generate_medical_response(user_input):
                          top_p=0.95)
     return response[0]['generated_text']
 
-# Input box for user symptoms
-user_input = st.text_input("Describe your symptoms:")
+def display_conversation_history():
+    """Display the conversation history in the app."""
+    if st.session_state.history:
+        st.subheader("Conversation History")
+        for message in st.session_state.history:
+            st.write(message)
 
-if st.button("Ask"):
-    if user_input:
-        # Store the user's input in the conversation history
-        st.session_state.history.append(f"You: {user_input}")
+def main():
+    """Main function to run the Streamlit app."""
+    
+    # Input box for user to describe symptoms
+    user_input = st.text_input("Describe your symptoms:")
 
-        # Generate the chatbot's response using the BioGPT model
-        bot_response = generate_medical_response(user_input)
+    # When the 'Ask' button is pressed
+    if st.button("Ask"):
+        if user_input:  # Check if user input is not empty
+            # Store the user's input in the conversation history
+            st.session_state.history.append(f"You: {user_input}")
 
-        # Store the chatbot's response in the conversation history
-        st.session_state.history.append(f"Bot: {bot_response}")
+            # Generate the chatbot's response using BioGPT
+            bot_response = generate_medical_response(user_input)
 
-        # Clear the input box
-        user_input = ""
+            # Store the chatbot's response in the conversation history
+            st.session_state.history.append(f"Bot: {bot_response}")
 
-# Display the conversation history
-if st.session_state.history:
-    st.subheader("Conversation History")
-    for message in st.session_state.history:
-        st.write(message)
+            # Clear the input box after submission (optional for improved UX)
+            st.text_input("Describe your symptoms:", "", key="clear_input")
+
+    # Display the conversation history on the Streamlit app
+    display_conversation_history()
+
+if __name__ == "__main__":
+    main()
