@@ -1,26 +1,20 @@
 import streamlit as st
-# from google.colab import userdata
-# from huggingface_hub import login
 from transformers import pipeline
 
-# Retrieve the Hugging Face token from Colab's secrets
-# HF_TOKEN = userdata.get('HF_TOKEN')
-
-# Authenticate using the retrieved Hugging Face token
-# login(token=HF_TOKEN)
-
-# Set up the text generation pipeline using GPT-2
-generator = pipeline("text-generation", model="gpt2")
+# Load the BioGPT model from HuggingFace or another medical GPT model
+# BioGPT has been fine-tuned on medical data and should provide better responses
+generator = pipeline("text-generation", model="microsoft/BioGPT")
 
 # Streamlit app title
-st.title("Health Chatbot")
+st.title("24/7Dr. Health Chatbot")
 
 # Initialize session state for conversation history
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-# Function to generate chatbot responses
-def generate_response(user_input):
+# Function to generate chatbot responses using BioGPT
+def generate_medical_response(user_input):
+    # Generate a response using BioGPT (or another medical model)
     response = generator(user_input,
                          max_length=150,
                          num_return_sequences=1,
@@ -35,12 +29,12 @@ def generate_response(user_input):
 user_input = st.text_input("Describe your symptoms:")
 
 if st.button("Ask"):
-   if user_input:
+    if user_input:
         # Store the user's input in the conversation history
         st.session_state.history.append(f"You: {user_input}")
 
-        # Generate the chatbot's response
-        bot_response = generate_response(user_input)
+        # Generate the chatbot's response using the BioGPT model
+        bot_response = generate_medical_response(user_input)
 
         # Store the chatbot's response in the conversation history
         st.session_state.history.append(f"Bot: {bot_response}")
